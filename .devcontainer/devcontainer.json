@@ -1,0 +1,20 @@
+{
+    "name": "AI Skills Lab",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:1": {},
+        "ghcr.io/devcontainers/features/github-copilot:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "github.copilot",
+                "ms-python.python",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
+    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y git",
+    "remoteUser": "vscode"
+}
