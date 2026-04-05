@@ -5,6 +5,11 @@
   
     "customizations": {
       "vscode": {
+        "settings": {
+            "remote.extensionKind": {
+              "pomdtr.excalidraw-editor": ["ui"]
+            }
+          },
         "extensions": [
           "ms-dotnettools.csharp",
           "GitHub.copilot",
