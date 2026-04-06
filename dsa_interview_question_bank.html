@@ -1,0 +1,255 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{padding:1rem 0;font-family:var(--font-sans)}
+.ey{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px}
+hr.d{border:none;border-top:.5px solid var(--color-border-tertiary);margin:14px 0}
+.filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.f{font-size:11px;font-weight:500;padding:4px 12px;border-radius:999px;cursor:pointer;border:.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);background:none;transition:all .15s}
+.f.on{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.f:hover:not(.on){background:var(--color-background-secondary)}
+
+.qgrid{display:flex;flex-direction:column;gap:7px}
+.qcard{border:.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.qcard:hover{border-color:var(--color-border-secondary)}
+.qcard.expanded .qbody{display:block}
+.qcard.expanded .qarrow{transform:rotate(180deg)}
+.qhead{display:flex;align-items:center;gap:10px;padding:10px 13px}
+.qnum{font-size:11px;font-weight:500;color:var(--color-text-tertiary);width:22px;flex-shrink:0}
+.qtags{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:999px}
+.tc{background:#FCEBEB;color:#A32D2D}
+.th{background:#FAEEDA;color:#854F0B}
+.tm{background:#E6F1FB;color:#185FA5}
+.tg{background:#E1F5EE;color:#0F6E56}
+.tp{background:#EEEDFE;color:#534AB7}
+.qtitle{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1}
+.qai{font-size:10px;color:var(--color-text-tertiary);flex-shrink:0;white-space:nowrap}
+.qarrow{font-size:12px;color:var(--color-text-tertiary);flex-shrink:0;transition:transform .2s}
+.qbody{display:none;padding:0 13px 12px;border-top:.5px solid var(--color-border-tertiary);margin-top:0}
+
+.qsec{margin-top:10px}
+.qsl{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.qsl-r{color:#A32D2D}.qsl-h{color:#854F0B}.qsl-g{color:#0F6E56}.qsl-b{color:#185FA5}.qsl-p{color:#534AB7}
+
+.bugs{display:flex;flex-direction:column;gap:4px}
+.bug{font-size:12px;color:var(--color-text-secondary);line-height:1.5;padding:5px 8px;background:var(--color-background-secondary);border-radius:6px;border-left:2.5px solid}
+.bug-c{border-color:#E24B4A}
+.bug-h{border-color:#EF9F27}
+.bug-m{border-color:#378ADD}
+
+.probes{display:flex;flex-direction:column;gap:3px}
+.probe{font-size:12px;color:var(--color-text-secondary);line-height:1.5;padding:4px 0}
+.probe::before{content:"→ ";color:var(--color-text-tertiary);font-weight:500}
+
+.signal-row{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.sig{font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:3px 8px;border-radius:5px}
+
+.ai-box{background:#F5F3FF;border-radius:6px;padding:6px 9px;margin-top:4px}
+.ai-text{font-size:12px;color:#534AB7;line-height:1.5}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--color-background-secondary);border-radius:8px;padding:8px 10px;text-align:center}
+.stat-n{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.stat-l{font-size:11px;color:var(--color-text-tertiary);margin-top:1px}
+</style>
+
+<div class="w">
+<div class="stats">
+  <div class="stat"><p class="stat-n">20</p><p class="stat-l">Questions</p></div>
+  <div class="stat"><p class="stat-n">6</p><p class="stat-l">Categories</p></div>
+  <div class="stat"><p class="stat-n">2–3</p><p class="stat-l">Planted bugs each</p></div>
+  <div class="stat"><p class="stat-n">AI can't</p><p class="stat-l">fully solve any</p></div>
+</div>
+
+<div class="filters">
+  <button class="f on" onclick="filter('all',this)">All 20</button>
+  <button class="f" onclick="filter('data-structure',this)">Data structures</button>
+  <button class="f" onclick="filter('concurrency',this)">Concurrency</button>
+  <button class="f" onclick="filter('design',this)">System design</button>
+  <button class="f" onclick="filter('algorithm',this)">Algorithms</button>
+  <button class="f" onclick="filter('memory',this)">Memory / GC</button>
+  <button class="f" onclick="filter('network',this)">Network / IO</button>
+</div>
+
+<div class="qgrid" id="qgrid"></div>
+</div>
+
+<script>
+const Qs=[
+{n:1,cat:"data-structure",title:"Custom HashMap with open addressing",planted:["critical","hard","medium"],
+bugs:["c:Math.Abs(hash) overflow on Int.MinValue — identical to dictionary trap, different context","h:Tombstone deletion never compacts — lookup degrades to O(n) after heavy Remove load","m:Load factor never triggers resize — fixed 16-bucket array degrades silently"],
+probes:["What happens after 1000 removes with no inserts?","Why does lookup slow down even when Count is low?","How does Robin Hood hashing improve on naive open addressing?"],
+ai:"AI writes a working open-address hashmap. It does not plant the tombstone compaction bug or the MinValue trap. It never mentions Robin Hood hashing unless prompted.",
+seniority:"Mid: catches no resize. Senior: catches tombstone + MinValue. Staff: proposes Robin Hood or linear probing with backward shift delete.",cats:["data-structure"]},
+
+{n:2,cat:"concurrency",title:"Thread-safe bounded queue (producer–consumer)",planted:["critical","hard","hard"],
+bugs:["c:count++ not atomic — readers and writers race on capacity check","h:Monitor.Pulse called outside lock — InvalidOperationException in .NET","h:Full/empty signalled with Pulse not PulseAll — one waiter woken, others starve"],
+probes:["What happens if two producers both see Count < Capacity at the same time?","Why is Pulse dangerous here? What does PulseAll guarantee?","How does this differ from Channel<T> in .NET?"],
+ai:"AI generates a Monitor-based queue. It almost always uses Pulse instead of PulseAll and almost never notices the non-atomic count. It cannot reason about the Pulse-outside-lock bug.",
+seniority:"Mid: catches non-atomic count. Senior: catches Pulse vs PulseAll. Staff: redesigns using Channel<T> or SemaphoreSlim and explains why.",cats:["concurrency"]},
+
+{n:3,cat:"data-structure",title:"LRU cache implementation",planted:["critical","hard","medium"],
+bugs:["c:Dictionary + LinkedList not kept in sync on eviction — stale key remains in dict","h:capacity=0 allowed — first Put immediately panics with DivideByZeroException","m:Get does not promote node to head — LRU order is not maintained on read"],
+probes:["Walk me through what happens when the cache is full and you insert a new key","What does capacity=0 mean? Should it be allowed?","How would you make this O(1) for both Get and Put?"],
+ai:"AI produces a working LRU. It forgets to update the dictionary when evicting from the linked list roughly 50% of the time. It never considers capacity=0.",
+seniority:"Mid: catches dict/list desync. Senior: catches capacity=0 and read-not-promoting. Staff: proposes concurrent LRU with striped locks or discusses TinyLFU.",cats:["data-structure"]},
+
+{n:4,cat:"concurrency",title:"Singleton with double-checked locking",planted:["critical","hard","medium"],
+bugs:["c:instance field not volatile — CPU or JIT reorders write, second thread sees half-constructed object","h:Lock object is typeof(Singleton) — any external code can deadlock by locking the same type","m:No lazy initialisation fallback — lock contention spikes under high concurrency at startup"],
+probes:["Why does volatile matter here even if the CPU is x86?","Who else can lock on typeof(Singleton)? How would you exploit that?","What does Lazy<T> give you that this implementation doesn't?"],
+ai:"AI writes double-checked locking with the lock. It adds volatile roughly 40% of the time. It never notices the typeof lock hazard.",
+seniority:"Mid: catches missing volatile. Senior: catches typeof hazard. Staff: replaces entirely with Lazy<T> or static initialiser and explains why.",cats:["concurrency"]},
+
+{n:5,cat:"algorithm",title:"K-th largest element — min-heap implementation",planted:["critical","hard","medium"],
+bugs:["c:Heap initialised empty — first K-1 elements never establish the invariant correctly","h:No handling when stream has fewer than K elements — index out of bounds","m:Docstring claims O(log n) insert but implementation is O(n) — wrong complexity claim"],
+probes:["What is the heap invariant and how does your code maintain it?","I give you a stream of 2 items and ask for the 5th largest. What happens?","The docstring says O(log n). Is it? Walk me through the actual cost."],
+ai:"AI generates the heap solution correctly for the happy path. It does not handle fewer-than-K elements and never questions the docstring complexity claim.",
+seniority:"Mid: catches size guard. Senior: catches complexity mismatch. Staff: discusses order statistics tree, reservoir sampling, or distributed merge.",cats:["algorithm"]},
+
+{n:6,cat:"design",title:"Rate limiter — token bucket",planted:["critical","hard","hard"],
+bugs:["c:Token refill calculated from wall clock — NTP clock skew can add tokens retroactively","h:Remaining tokens stored as int — floating-point rate means fractional tokens silently truncated","h:No distributed coordination — each pod has its own bucket, global rate = limit × pod count"],
+probes:["If the system clock jumps back 2 seconds after an NTP sync, what happens to your bucket?","Your rate is 1.5 tokens/sec stored as int. What is the actual effective rate?","Three pods, 100 req/s limit each. What is the real rate your users experience?"],
+ai:"AI writes a correct single-process token bucket. It uses wall clock without comment, stores tokens as int without comment, and never mentions distributed coordination.",
+seniority:"Mid: catches distributed gap. Senior: catches clock skew. Staff: proposes Redis INCR with TTL, sliding window log, or Envoy rate limit service.",cats:["design"]},
+
+{n:7,cat:"data-structure",title:"Trie with autocomplete and delete",planted:["critical","hard","medium"],
+bugs:["c:Delete removes node even when it is a prefix of another word — corrupts other words","h:EndOfWord flag not cleared on delete — deleted word still returned by search","m:No limit on autocomplete results — returns entire subtree for single-char prefix"],
+probes:["I insert 'can', 'candy', 'candle'. I delete 'can'. What does search('candy') return?","After deleting a word, does it still appear in autocomplete? Walk me through the code.","Your prefix is 'a'. How many results come back? Is that safe?"],
+ai:"AI implements a trie with insert and search. Delete is incomplete 80% of the time. It never considers prefix-of-another-word corruption or result limits.",
+seniority:"Mid: catches EndOfWord flag. Senior: catches prefix corruption. Staff: proposes DAWG, compressed trie, or result pagination.",cats:["data-structure"]},
+
+{n:8,cat:"concurrency",title:"Async task queue with retry and backoff",planted:["critical","hard","medium"],
+bugs:["c:Exception swallowed in retry loop — failures silently disappear, queue appears healthy","h:Exponential backoff has no cap — 2^20 seconds wait after 20 retries","m:Retry count tracked per-attempt not per-task — requeued task starts retry count at zero"],
+probes:["A task fails 100 times. What does your retry logic produce on attempt 101?","After 20 retries your backoff is how many seconds? Calculate it.","I dequeue a task, retry it 3 times, and requeue it. What is its retry count now?"],
+ai:"AI writes a retry loop with backoff. It swallows exceptions roughly 60% of the time. It never caps the backoff or tracks retry state on the task object.",
+seniority:"Mid: catches swallowed exceptions. Senior: catches backoff cap. Staff: attaches retry metadata to task, proposes dead-letter queue.",cats:["concurrency"]},
+
+{n:9,cat:"algorithm",title:"Graph shortest path — Dijkstra with priority queue",planted:["critical","hard","medium"],
+bugs:["c:Visited check happens after dequeue not before enqueue — same node processed multiple times","h:Negative edge weights silently accepted — produces wrong answer without error","m:Priority queue never decreases key — stale distances remain, queue bloats to O(E) entries"],
+probes:["Node B is enqueued with distance 5, then with distance 3. Which is processed first?","I add an edge with weight -10. What does your algorithm output?","After 1000 edge relaxations, how large is your priority queue?"],
+ai:"AI writes Dijkstra correctly for positive weights and small graphs. It misplaces the visited check roughly half the time. It never rejects negative weights or handles decrease-key.",
+seniority:"Mid: catches visited placement. Senior: catches negative weight. Staff: knows Bellman-Ford, SPFA, or Johnson's algorithm for negative weights.",cats:["algorithm"]},
+
+{n:10,cat:"design",title:"In-memory pub/sub event bus",planted:["critical","hard","medium"],
+bugs:["c:Subscriber list mutated during dispatch — ConcurrentModificationException if handler unsubscribes itself","h:Slow subscriber blocks all other subscribers — synchronous dispatch on shared thread","m:No weak references — subscriber objects never GC'd even after caller is disposed"],
+probes:["A handler calls Unsubscribe() on itself during event dispatch. What happens?","Subscriber A takes 10 seconds to process. When does Subscriber B receive the event?","How many subscribers are alive after 10,000 subscribe-and-discard cycles?"],
+ai:"AI writes a working pub/sub bus. It uses a plain List and iterates it during dispatch without copying. It never mentions weak references or async dispatch.",
+seniority:"Mid: catches list mutation. Senior: catches synchronous blocking. Staff: proposes copy-on-write snapshot, WeakReference<T>, or async dispatch queue.",cats:["design"]},
+
+{n:11,cat:"memory",title:"Object pool for expensive resources",planted:["critical","hard","medium"],
+bugs:["c:Return() does not reset object state — pooled objects carry data from previous session","h:Pool grows unbounded — no max size, memory leaks under bursty load","m:Not thread-safe — two threads can Rent the same object simultaneously"],
+probes:["I rent a connection, execute a query, return it. The next renter — what do they see?","Your pool starts empty. 1000 requests arrive simultaneously. What is pool size after?","Two threads call Rent() at the same time on a pool with one item. What happens?"],
+ai:"AI writes an object pool with Rent and Return. It forgets to reset state on Return 70% of the time. It never sets a pool size cap.",
+seniority:"Mid: catches state reset. Senior: catches unbounded growth. Staff: discusses ConcurrentBag, ArrayPool<T>, or MemoryPool<T>.",cats:["memory"]},
+
+{n:12,cat:"algorithm",title:"Merge K sorted lists",planted:["critical","hard","medium"],
+bugs:["c:Comparison reversed in heap — max-heap used instead of min-heap, returns wrong order","h:Empty input lists not filtered — null node inserted into heap crashes on comparison","m:Returns new list nodes — O(N) space when in-place merge is possible"],
+probes:["Your heap orders by value descending. What does the output look like?","One of your K lists is empty. Walk me through what your code does.","What is your space complexity? Is there a way to do this with O(1) extra space?"],
+ai:"AI generates the min-heap approach. It inverts the comparator roughly 30% of the time. It never filters empty lists or discusses in-place alternatives.",
+seniority:"Mid: catches comparator direction. Senior: catches empty list. Staff: knows in-place k-way merge or discusses external sort for disk-resident lists.",cats:["algorithm"]},
+
+{n:13,cat:"design",title:"Consistent hashing ring",planted:["critical","hard","hard"],
+bugs:["c:Virtual nodes not removed on server departure — dead nodes keep receiving requests","h:SortedDictionary used — O(log n) lookup when bisect gives O(log n) too but no wraparound","h:No rebalancing on join — new node takes entire load from one neighbour immediately"],
+probes:["Server 3 goes down. Which nodes still have Server 3's virtual nodes on the ring?","A new server joins. Which server loses load? How much?","What is the maximum load imbalance with 3 servers and 150 virtual nodes?"],
+ai:"AI creates a consistent hash ring. It omits virtual node cleanup on removal roughly 60% of the time. It never discusses load imbalance or rebalancing strategies.",
+seniority:"Mid: catches virtual node cleanup. Senior: catches load imbalance. Staff: discusses bounded load consistent hashing or Rendezvous hashing.",cats:["design"]},
+
+{n:14,cat:"data-structure",title:"Circular buffer / ring buffer",planted:["critical","hard","medium"],
+bugs:["c:Full and empty conditions use same state (head==tail) — cannot distinguish full from empty","h:Read and write indices not atomic — concurrent read+write corrupts indices","m:Buffer size not enforced as power of 2 — modulo instead of bitmask is slower and incorrect for non-power sizes"],
+probes:["Head = Tail = 5. Is the buffer full or empty? How does your code decide?","One thread reads while another writes. What can go wrong with two non-atomic index updates?","Your capacity is 10. What does index % 10 return for index 10, 20, 30?"],
+ai:"AI writes a ring buffer. The full/empty ambiguity exists in roughly half of AI outputs — it is the canonical ring buffer trap. The power-of-2 optimisation is never mentioned.",
+seniority:"Mid: catches full/empty ambiguity. Senior: proposes size-tracking field or sequence numbers. Staff: knows LMAX Disruptor pattern.",cats:["data-structure"]},
+
+{n:15,cat:"memory",title:"Memory-efficient sparse matrix",planted:["critical","hard","medium"],
+bugs:["c:CSR row pointer array off by one — last row's entries inaccessible","h:No bounds check on column index — out-of-range column silently stored","m:Matrix addition assumes same sparsity pattern — wrong result when patterns differ"],
+probes:["Your matrix is 5×5. Your row pointer array has 5 entries. What's missing?","I call Set(0, 999, 1.0) on a 5×5 matrix. What happens?","Add two sparse matrices with different non-zero patterns. Walk me through the merge."],
+ai:"AI generates CSR or COO format. The row pointer off-by-one occurs in roughly 40% of implementations. Column bounds checking is never added unless explicitly asked.",
+seniority:"Mid: catches off-by-one. Senior: catches bounds + merge. Staff: discusses COO vs CSR vs CSC trade-offs and BLAS-level optimisation.",cats:["memory"]},
+
+{n:16,cat:"algorithm",title:"Sliding window maximum",planted:["critical","hard","medium"],
+bugs:["c:Deque not pruned on left — stale indices outside window affect maximum","h:Comparison is >= instead of > — equal elements cause unnecessary deque churn","m:Output array sized incorrectly — off by k-1 missing values at start"],
+probes:["Window slides past index 3 but your deque still has index 1. What max do you return?","Your window contains [5, 5, 3]. Both 5s are in the deque. What does >= do on insert?","Your input has 10 elements and window size 3. How many outputs should there be?"],
+ai:"AI generates the deque approach. It forgets to prune stale left indices roughly 40% of the time. Output array sizing is wrong in roughly 25% of outputs.",
+seniority:"Mid: catches stale deque index. Senior: catches all three. Staff: discusses segment tree or sparse table for static range max queries.",cats:["algorithm"]},
+
+{n:17,cat:"network",title:"HTTP connection pool",planted:["critical","hard","hard"],
+bugs:["c:Connections returned to pool without checking if still alive — dead socket given to next caller","h:No DNS TTL respect — resolved IP cached forever, misses failover","h:Pool timeout blocks on monitor — thread starvation if all connections busy"],
+probes:["A connection times out at the server side. How does your pool know? When does it find out?","You resolve api.example.com once at startup. The IP changes due to failover. What happens?","All 10 connections are in use. Thread 11 calls Acquire(). What does it do?"],
+ai:"AI writes a connection pool. Health checking before return is absent in most outputs. DNS TTL is never mentioned. Thread starvation under exhaustion is never handled.",
+seniority:"Mid: catches dead socket. Senior: catches DNS TTL. Staff: proposes async acquire, health-check on return, or discusses HttpClientFactory.",cats:["network"]},
+
+{n:18,cat:"design",title:"Write-through cache with TTL",planted:["critical","hard","medium"],
+bugs:["c:TTL checked on read not on write — expired entry can be returned for TTL duration after expiry","h:Background cleanup uses Timer — Timer callback runs on thread pool, races with read/write","m:Cache capacity eviction uses random eviction — not LRU, not LFU — poor hit rate"],
+probes:["An entry expires at T=10. A read at T=15 — what do you return?","Your Timer fires during a ConcurrentDictionary read. Is that safe? What about a write?","Your cache is full. Which entry do you evict? How did you choose?"],
+ai:"AI writes a TTL cache. It checks TTL but often checks on write not on read, so stale entries survive. Background cleanup thread safety is not discussed. Eviction policy defaults to arbitrary.",
+seniority:"Mid: catches TTL check on read. Senior: catches Timer race. Staff: designs lazy expiry + active sweep with separate lock, proposes Caffeine-style W-TinyLFU.",cats:["design"]},
+
+{n:19,cat:"network",title:"Retry-safe idempotent request handler",planted:["critical","hard","medium"],
+bugs:["c:Idempotency key stored in memory — lost on restart, duplicate requests reprocessed","h:Idempotency key never expires — storage grows indefinitely","m:Response not stored alongside key — retried request returns different response body"],
+probes:["Your server restarts mid-flight. Client retries. What happens to the idempotency check?","After 1 year, how large is your idempotency key store?","Client retries and gets a 200. Is the response body guaranteed to be identical?"],
+ai:"AI adds idempotency key checking. It stores keys in a dictionary in memory without comment. TTL for key expiry is never added. Response storage is absent.",
+seniority:"Mid: catches in-memory loss. Senior: catches TTL + response storage. Staff: designs Redis-backed idempotency store with TTL and atomic check-and-set.",cats:["network"]},
+
+{n:20,cat:"memory",title:"Reference-counted resource manager",planted:["critical","hard","medium"],
+bugs:["c:Count decrement not atomic — two threads releasing simultaneously double-free","h:Count can go negative — Release called more times than Acquire, no guard","m:Circular references between managed objects — count never reaches zero, resource never freed"],
+probes:["Two threads call Release() simultaneously. What is the count? What is freed?","Acquire is called once, Release is called twice. What is the count? What happens?","Object A holds B, object B holds A. Both go out of scope. Are they freed?"],
+ai:"AI implements reference counting with Interlocked. It forgets the negative count guard in most outputs. Circular reference detection is never implemented.",
+seniority:"Mid: catches non-atomic decrement. Senior: catches negative guard. Staff: discusses weak references for cycle breaking, GC handle pinning, or IDisposable pattern.",cats:["memory"]}
+];
+
+function render(list){
+  const g=document.getElementById('qgrid');
+  g.innerHTML='';
+  list.forEach(q=>{
+    const d=document.createElement('div');
+    d.className='qcard';
+    d.dataset.cats=q.cats.join(',');
+    const planted=q.planted;
+    const tagHtml=planted.map(p=>`<span class="tag ${p==='critical'?'tc':p==='hard'?'th':'tm'}">${p}</span>`).join('');
+    const aiPct=q.cats.includes('concurrency')?'Hard for AI':q.cats.includes('memory')?'Moderate for AI':'Partial for AI';
+    d.innerHTML=`
+      <div class="qhead" onclick="toggle(this.parentElement)">
+        <span class="qnum">${q.n}</span>
+        <div class="qtags">${tagHtml}</div>
+        <span class="qtitle">${q.title}</span>
+        <span class="qai">${aiPct}</span>
+        <span class="qarrow">▾</span>
+      </div>
+      <div class="qbody">
+        <div class="qsec">
+          <p class="qsl qsl-r">Planted issues</p>
+          <div class="bugs">
+            ${q.bugs.map(b=>{const[sev,txt]=b.split(':');return`<div class="bug ${sev==='c'?'bug-c':sev==='h'?'bug-h':'bug-m'}"><b>${sev==='c'?'Critical':sev==='h'?'Hard':'Medium'}:</b> ${txt}</div>`}).join('')}
+          </div>
+        </div>
+        <div class="qsec">
+          <p class="qsl qsl-b">Probe questions</p>
+          <div class="probes">${q.probes.map(p=>`<div class="probe">${p}</div>`).join('')}</div>
+        </div>
+        <div class="qsec">
+          <p class="qsl qsl-p">What AI does</p>
+          <div class="ai-box"><p class="ai-text">${q.ai}</p></div>
+        </div>
+        <div class="qsec">
+          <p class="qsl qsl-g">Seniority signal</p>
+          <p style="font-size:12px;color:var(--color-text-secondary);line-height:1.5">${q.seniority}</p>
+        </div>
+      </div>`;
+    g.appendChild(d);
+  });
+}
+
+function toggle(card){
+  card.classList.toggle('expanded');
+}
+
+function filter(cat,btn){
+  document.querySelectorAll('.f').forEach(f=>f.classList.remove('on'));
+  btn.classList.add('on');
+  const filtered=cat==='all'?Qs:Qs.filter(q=>q.cats.includes(cat));
+  render(filtered);
+}
+
+render(Qs);
+</script>

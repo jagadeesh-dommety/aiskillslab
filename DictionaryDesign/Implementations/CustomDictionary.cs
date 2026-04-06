@@ -102,7 +102,7 @@ namespace DictionaryDesign.Implementations
             }
             set
             {
-                int hash = Math.Abs(key!.GetHashCode()) & % buckets.Length;
+                int hash = Math.Abs(key!.GetHashCode()) & buckets.Length;
                 if (buckets[hash] != null)
                 {
                     var node = buckets[hash]!.First;
