@@ -12,6 +12,11 @@
           "ms-azuretools.vscode-docker",
           "pomdtr.excalidraw-editor"
         ]
+      },
+      "settings": {
+        "remote.extensionKind": {
+          "pomdtr.excalidraw-editor": ["ui"]
+        }
       }
     },
   
