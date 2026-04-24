@@ -54,3 +54,5 @@ CSV Report Generator	Memory exhaustion on large files, no streaming
 Retry Client	Exponential backoff missing, no jitter, retries non-idempotent calls
 Config Loader	Secrets in code, no environment override, no reload
 Webhook Dispatcher	No signature verification, no timeout, synchronous fan-out
+
+For oauth - state or any additional data been sent.  first it call the oauth and oauth returns with /callback which goes to any of the multi instance system, how to handle it 
